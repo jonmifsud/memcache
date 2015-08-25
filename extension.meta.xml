@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="memcache" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Memcache</name>
+	<description>Provides an Memcache driver for use with Symphony CMS.</description>
+	<repo type="github">https://github.com/jonmifsud/apc_cache</repo>
+	<types>
+		<type>Other</type>
+	</types>
+	<authors>
+		<author>
+			<name github="jonmifsud" symphony="gunglien">Jon Mifsud</name>
+			<website>http://jonmifsud.com</website>
+		</author>
+	</authors>
+	<releases>
+		<release version="0.1" date="2014-08-24" min='2.6'>
+			* Initial release
+		</release>
+	</releases>
+</extension>
