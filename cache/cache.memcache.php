@@ -3,12 +3,8 @@
 require_once FACE . '/interface.namespacedcache.php';
 
  /**
-  * The CacheDatabase interface allows extensions to store data in Symphony's
-  * database table, `tbl_cache`. At the moment, it is mostly unused by the core,
-  * with the exception of the deprecated Dynamic XML datasource.
+  * The Memcache uses the namespaced cache interface allowing extensions to store data in Memcache.
   *
-  * This cache will be initialised by default if no other caches are specified
-  * in the install.
   *
   * @see ExtensionManager#getCacheProvider()
   */
@@ -17,21 +13,15 @@ class Memcache implements iNamespacedCache
     /**
      * An instance of the memcached class used for caching
      *
-     * @var MySQL
      */
     private $Memcached; //static?
 
     /**
-     * The constructor for the Cacheable takes an instance of the
-     * MySQL class and assigns it to `$this->Database`
+     * The constructor for the Cacheable sets up the initial Memcached object and sets the server configuration
      *
-     * @param MySQL $Database
-     *  An instance of the MySQL class to store the cached
-     *  data in.
      */
     public function __construct()
     {
-        // $this->Database = $Memcached;
         $this->Memcached = new Memcached();
 
         $serverDetails = Symphony::Configuration()->get('server_details', 'memcache');
@@ -40,8 +30,6 @@ class Memcache implements iNamespacedCache
         } else {
             $serverDetails = array("127.0.0.1:11211");
         }
-
-        // var_dump($serverDetails);die;
 
         foreach ($serverDetails as $key => $value) {
             $details = explode(':', $value);
@@ -85,17 +73,15 @@ class Memcache implements iNamespacedCache
 
     /**
      * Given the hash of a some data, check to see whether it exists in
-     * `tbl_cache`. If no cached object is found, this function will return
+     * Memcache. If no cached object is found, this function will return
      * false, otherwise the cached object will be returned as an array.
      *
      * @param string $hash
      *  The hash of the Cached object, as defined by the user
      * @param string $namespace
-     *  The namespace allows a group of data to be retrieved at once
+     *  The namespace - used only for namespacing does not fetch a group of data
      * @return array|boolean
-     *  An associative array of the cached object including the creation time,
-     *  expiry time, the hash and the data. If the object is not found, false will
-     *  be returned.
+     *  Returns whatever is fed to the cache, in the same format or false if the object is not found.
      */
     public function read($hash, $namespace = null)
     {
@@ -116,15 +102,12 @@ class Memcache implements iNamespacedCache
     }
 
     /**
-     * This function will compress data for storage in `tbl_cache`.
+     * This function will compress data and store it in Memcache
      * It is left to the user to define a unique hash for this data so that it can be
      * retrieved in the future. Optionally, a `$ttl` parameter can
      * be passed for this data. If this is omitted, it data is considered to be valid
-     * forever. This function utilizes the Mutex class to act as a crude locking
-     * mechanism.
+     * forever.
      *
-     * @see toolkit.Mutex
-     * @throws DatabaseException
      * @param string $hash
      *  The hash of the Cached object, as defined by the user
      * @param string $data
@@ -140,11 +123,6 @@ class Memcache implements iNamespacedCache
      */
     public function write($hash, $data, $ttl = null, $namespace = null)
     {
-
-        if (!Mutex::acquire($hash, 2, TMP)) {
-            return false;
-        }
-
         if (!$data = Cacheable::compressData($data)) {
             return false;
         }
@@ -156,11 +134,10 @@ class Memcache implements iNamespacedCache
         $result = $this->Memcached->set($versionedNamespace . $hash,$data,$ttl * 60);
 
         if ( !$result){
+            //TODO Add logging of the error code
             $errorCode = $this->Memcached->getResultCode();
-            var_dump($errorCode);die;
+            echo('memcached error: '. $errorCode);die;
         }
-        
-        Mutex::release($hash, TMP);
 
         return true;
     }
@@ -170,7 +147,6 @@ class Memcache implements iNamespacedCache
      * If only a namespace is provided clear all caches with that namespace
      * If nothing is provided flush the whole memcache
      *
-     * @throws DatabaseException
      * @param string $hash
      *  The hash of the Cached object, as defined by the user
      * @param string $namespace

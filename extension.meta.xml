@@ -2,7 +2,7 @@
 <extension id="memcache" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Memcache</name>
 	<description>Provides an Memcache driver for use with Symphony CMS.</description>
-	<repo type="github">https://github.com/jonmifsud/apc_cache</repo>
+	<repo type="github">https://github.com/jonmifsud/memcache</repo>
 	<types>
 		<type>Other</type>
 	</types>
