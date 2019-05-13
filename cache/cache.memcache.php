@@ -136,7 +136,9 @@ class Memcache implements iNamespacedCache
         if ( !$result){
             //TODO Add logging of the error code
             $errorCode = $this->Memcached->getResultCode();
-            echo('memcached error: '. $errorCode);die;
+            // echo('memcached error: '. $errorCode);die;
+
+            throw new \Exception('Memcached Error ' . $errorCode);
         }
 
         return true;
